@@ -2,32 +2,37 @@ using UnityEngine;
 
 public class EnergyObject : MonoBehaviour
 {
-    [Header("API Settings")]
-    public string zoneID; // API'den gelen ID ile aynı olmalı (örn: "zone_1")
+    [Header("API Ayarları")]
+    public string zoneID; // Bu kısma Inspector'da B001, B002 yazmıştın, kalsın.
 
-    [Header("Data Values")]
-    public float currentLoad;
-    public float threshold = 80f; // Hangi değerden sonra kırmızı yansın?
+    [Header("Veri Değerleri")]
+    public string ad;
+    public float currentLoad; // Tüketim buraya gelecek
+    public float yenilenebilir;
+    public double karbon;
 
-    private MeshRenderer[] childRenderers;
-
-    void Start()
+    // WebManager'ın çağıracağı ana fonksiyon
+    public void VerileriGuncelle(string gelenAd, float gelenTuketim, float gelenYenilenebilir, double gelenKarbon)
     {
-        // İçindeki tüm binaların renderer'larını toplu olarak bulur
-        childRenderers = GetComponentsInChildren<MeshRenderer>();
+        ad = gelenAd;
+        currentLoad = gelenTuketim;
+        yenilenebilir = gelenYenilenebilir;
+        karbon = gelenKarbon;
+
+        RenkGuncelle();
     }
 
-    // Veri güncellendiğinde görselliği değiştiren fonksiyon
-    public void UpdateStatus(float newLoad)
+    void RenkGuncelle()
     {
-        currentLoad = newLoad;
-        Color targetColor = (currentLoad > threshold) ? Color.red : Color.green;
+        // Binanın altındaki tüm parçaları bul ve boya
+        Renderer[] cocuklar = GetComponentsInChildren<Renderer>();
+        
+        // %80 ve üzeri tüketim kırmızıya yaklaşır
+        Color hedefRenk = Color.Lerp(Color.green, Color.red, currentLoad / 100f);
 
-        foreach (var ren in childRenderers)
+        foreach (Renderer r in cocuklar)
         {
-            // Materyalin Emission (Işıma) rengini değiştirir (URP için)
-            ren.material.SetColor("_EmissionColor", targetColor * 2f); // 2f parlaklık çarpanı
-            DynamicGI.SetEmissive(ren, targetColor * 2f);
+            r.material.color = hedefRenk;
         }
     }
 }
